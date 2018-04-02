@@ -1,7 +1,12 @@
-class App
-    def call(env)
-        [200, {}, ["hello world!"]]
+require_relative './framework.rb'
+
+APP = App.new do
+    get '/' do
+        'rooty'
+    end
+
+    get '/users/:username' do
+        'a user'
     end
 end
 
-APP = App.new
