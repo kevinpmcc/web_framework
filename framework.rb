@@ -2,8 +2,15 @@ class App
     def initialize(&block)
       @routes = RoutesTable.new(block)
     end
+
     def call(env)
-        [200, {}, ["hello world!"]]
+        request = Rack::Request.new(env)
+        @routes.each do |route|
+            if route.match?(request.path)
+                return [200, {}, [instance_eval(&route.block)]]
+            end
+        end
+        [404, {}, ["Route #{request.path} not found"]]
     end
 
     class RoutesTable
@@ -15,7 +22,15 @@ class App
         def get(route, &block)
             @routes << Route.new(route, block)
         end
+
+        def each(&block)
+            @routes.each(&block)
+        end
     end
 
-    Route = Struct.new(:route, :block)
+    class Route < Struct.new(:route, :block)
+        def match?(path)
+            self.route == path
+        end
+    end
 end
