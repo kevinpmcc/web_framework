@@ -6,9 +6,7 @@ class App
     def call(env)
         request = Rack::Request.new(env)
         @routes.each do |route|
-            if route.match?(request.path)
-                return [200, {}, [instance_eval(&route.block)]]
-            end
+            return [200, {}, [route.content(request)]] if route.content(request)
         end
         [404, {}, ["Route #{request.path} not found"]]
     end
@@ -29,8 +27,8 @@ class App
     end
 
     class Route < Struct.new(:route, :block)
-        def match?(path)
-            self.route == path
+        def content(request)
+            block.call if route == request.path
         end
     end
 end
