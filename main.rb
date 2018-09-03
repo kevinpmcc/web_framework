@@ -5,8 +5,8 @@ APP = App.new do
         'rooty'
     end
 
-    get '/users/:username' do
-        'a user'
+    get '/users/:username' do |params|
+        'a user named ' + params.fetch("username")
     end
 end
 
