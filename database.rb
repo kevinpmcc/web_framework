@@ -12,13 +12,21 @@ class Database
     new(db_conn, queries)
   end
 
-  def exec_sql(sql)
-    @db_conn.exec(sql).to_a
+  def method_missing(name, *args)
+    sql = @queries.fetch(name)
+
+    @db_conn.exec_params(sql, args).to_a.map do |row|
+      Record.new(row)
+    end
   end
 
-  def method_missing(name, *args)
-    sql = @queries.fetch(name) % args
+  class Record
+    def initialize(row)
+      @row = row
+    end
 
-    exec_sql(sql)
+    def method_missing(name)
+      @row.fetch(name.to_s)
+    end
   end
 end
