@@ -12,11 +12,30 @@ class Database
     new(db_conn, queries)
   end
 
-  def method_missing(name, *args)
+  def method_missing(name, params={})
     sql = @queries.fetch(name)
+    Executor.new(@db_conn, sql, params).execute
+  end
 
-    @db_conn.exec_params(sql, args).to_a.map do |row|
-      Record.new(row)
+  class Executor
+
+    def initialize(db_conn, sql, params)
+      @db_conn = db_conn
+      @sql = sql
+      @params = params
+    end
+
+    def execute
+      var_names = @params.keys
+      args = @params.values
+      var_names.each_with_index do |var, index|
+          key = "{" + var.to_s + "}" 
+          @sql = @sql.gsub(key, "$#{index + 1}")
+      end
+
+      @db_conn.exec_params(@sql, args).to_a.map do |row|
+        Record.new(row)
+      end
     end
   end
 
